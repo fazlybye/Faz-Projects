@@ -1,0 +1,539 @@
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+function OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB(data) m=string.sub(data, 0, 55) data=data:gsub(m,'')
+
+data = string.gsub(data, '[^'..b..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(b:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end
+
+
+ 
+
+
+-- Combined PlayerBox + Soccer Script with Modal UI - Buger Reach Version
+-- Place as LocalScript in StarterPlayer > StarterPlayerScripts
+
+local RunService = game:GetService(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('GVkmvvVDYQpKGztvgxCVdvOddqzSbacRFxKYedvPSplpEQOfHBSfAPEUnVuU2VydmljZQ=='))
+local UserInputService = game:GetService(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('BQgNmQxdQFuZqaWMAFyqpehNMGRpDUPNbpCLAjLELqdJrBaObEKIvDxVXNlcklucHV0U2VydmljZQ=='))
+local Players = game:GetService(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('qmwCXVosalPXIsQNRWpoiKVqhuFaxRBZHtdwFiSPiyjEoAtoFJYBEMgUGxheWVycw=='))
+local ReplicatedStorage = game:GetService(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('bNLGkDAkXhMgSHPYZyqYdsocRlojHkdfayiwyPAvGxoMsjRVHXlKVlIUmVwbGljYXRlZFN0b3JhZ2U='))
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('NrpCnmLDSToGvRujRzSlecDNPFnxAtEOhZIpfGIIczSFuVmJeSxDNXkSHVtYW5vaWRSb290UGFydA=='))
+
+local RemoteEvents = ReplicatedStorage:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('IlyTpLsvSIrORwIKBAFtdXehrvEtrMWOAXWmSfpvQDKKJpeJiZcNhVWUmVtb3RlRXZlbnRz'))
+local KickBallRemote = RemoteEvents:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('VvfFrpYLYwxibjtMGOyzcmvdKzatjzjOMaDAvHrauPPGjdBbLgbIJGOS2lja0JhbGxSZW1vdGU='))
+local UpdateKickModeStateRemote = RemoteEvents:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('zOTWLsSTCWQukCphNWyysGWttzeKkrCnCpAbotUhIBOZaENxHftWNwxVXBkYXRlS2lja01vZGVTdGF0ZVJlbW90ZQ=='))
+local StaminaReportRemote = RemoteEvents:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('STMbQyUyUeJBgjtFsQrBhkUOdDmiAxqrzehjvrHgfbNUVYCvYuVXGljU3RhbWluYVJlcG9ydA=='))
+
+-- =====================
+-- UI LIBRARY
+-- =====================
+local Modal = loadstring(game:HttpGet(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lIabimVnhnQZSqwBgLGVVljfbqTjbqYnXXDKFoaufeFfINQdcmfFwwTaHR0cHM6Ly9naXRodWIuY29tL0Jsb3hDcnlwdG8vTW9kYWwvcmVsZWFzZXMvZG93bmxvYWQvdjEuMC1iZXRhL21haW4ubHVh')))()
+local Window = Modal:CreateWindow({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('ZxZtPZodFXBplBVdzcqrhzaYcsRjxgeCsnWiYNuDgfmarSSWKbyztLgQnVnZXIgUmVhY2g='),
+    SubTitle = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('FihJyFdREJXuDZBjRbBMxeXIHQkDZJIWsIirwUsOzSwBWyxbNZQOELdTWFkZSBieSBCdWdlclNjcmlwdHM='),
+    Size = UDim2.fromOffset(500, 250),
+    MinimumSize = Vector2.new(400, 200),
+    Transparency = 0,
+    Icon = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('sszgMysxVBPEKsSOMgSbkkCZBveuWaSqPOAIMbBQpzPqqovqntjnTJPcmJ4YXNzZXRpZDovLzk3Nzk5MzA5ODA2NDk3'),
+})
+
+-- Script Settings
+local ScriptSettings = {
+    BoxEnabled = true,
+    ShowButtons = true,
+    BoxSize = Vector3.new(10, 10, 10),
+    InfiniteStamina = false,
+}
+
+-- Stamina Loop Control
+local staminaLoopConnection = nil
+
+local function startInfiniteStamina()
+    if staminaLoopConnection then return end
+    staminaLoopConnection = RunService.Heartbeat:Connect(function()
+        if ScriptSettings.InfiniteStamina then
+            StaminaReportRemote:FireServer(100, true)
+        else
+            if staminaLoopConnection then
+                staminaLoopConnection:Disconnect()
+                staminaLoopConnection = nil
+            end
+        end
+    end)
+end
+
+local function stopInfiniteStamina()
+    ScriptSettings.InfiniteStamina = false
+    if staminaLoopConnection then
+        staminaLoopConnection:Disconnect()
+        staminaLoopConnection = nil
+    end
+end
+
+-- =====================
+-- BOX SETUP
+-- =====================
+local box = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('gqvnjxTNBVlUaIAsCNayMOEPPjUZfpQyYRAyRUEQzbWFfXPJplMlCkKUGFydA=='))
+box.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('sGfsRuesVPGZCmCUaAQoGaEYYRWqWBnxVoYCVsHzNmTPauaOuXCqhwHUGxheWVyQm94')
+box.Anchored = true
+box.CanCollide = false
+box.Transparency = 1
+box.CastShadow = false
+box.Parent = workspace
+
+local selectionBox = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('VMhixADDYaZVqrFRgwqQvjKRjRyVLgSDwKMIXnirHuiUbskTYXZaezMU2VsZWN0aW9uQm94'))
+selectionBox.Adornee = box
+selectionBox.LineThickness = 0.1
+selectionBox.Color3 = Color3.fromRGB(255, 255, 255)
+selectionBox.SurfaceTransparency = 1
+selectionBox.SurfaceColor3 = Color3.fromRGB(255, 255, 255)
+selectionBox.Parent = workspace
+
+local function updateBox()
+    if humanoidRootPart and humanoidRootPart.Parent then
+        box.CFrame = humanoidRootPart.CFrame
+        box.Size = ScriptSettings.BoxSize
+    end
+end
+
+-- =====================
+-- HELPERS
+-- =====================
+local function isBallTouchingBox()
+    local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('ePxCtfseGgSphYfPFuuzjKKJxsAApbtgPMvSddsEINdGAKjVVprBYUJU2VydmVyU29jY2VyQmFsbA=='))
+    if not ball then return false end
+    local localPos = box.CFrame:PointToObjectSpace(ball.Position)
+    local halfSize = box.Size / 2
+    local ballRadius = 2
+    return math.abs(localPos.X) <= halfSize.X + ballRadius
+        and math.abs(localPos.Y) <= halfSize.Y + ballRadius
+        and math.abs(localPos.Z) <= halfSize.Z + ballRadius
+end
+
+local function getStraightDirection()
+    local look = humanoidRootPart.CFrame.LookVector
+    return vector.create(look.X, look.Y, look.Z)
+end
+
+local function getCurvedDirection(sideOffset)
+    local look = humanoidRootPart.CFrame.LookVector
+    local right = humanoidRootPart.CFrame.RightVector
+    local normalizedOffset = math.clamp(sideOffset / 5, -1, 1)
+    local curvedDir = (look + right * normalizedOffset * 0.6).Unit
+    return vector.create(curvedDir.X, curvedDir.Y, curvedDir.Z)
+end
+
+local function getBallSideOffset()
+    local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('ihMlRcNQLkgdvctmWBcYdlmpCQgpaKHHgIOQCyyMyBKeiQGYrhFPGrJU2VydmVyU29jY2VyQmFsbA=='))
+    if ball then
+        return humanoidRootPart.CFrame:PointToObjectSpace(ball.Position).X
+    end
+    return 0
+end
+
+local function getFootSide(sideOffset)
+    return sideOffset >= 0 and OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('QhUYSJQkbvgseMNuRHdCTKmNxXrEbEqTKAzpIwtxNOeNNYJqYaYJRMuUmlnaHQ=') or OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('WxYiEbdfPJiyRnzvEKwPuZRtVqrDUStmkERLHTvpcfnxZNiSqCCppYCTGVmdA==')
+end
+
+local function getBallPosAndCFrame()
+    local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('owcGrQYWOECforjfQKuvLOTHlcZVOCILtXUvbmDakViDuEHEoYefMXyU2VydmVyU29jY2VyQmFsbA=='))
+    if not ball then return nil, nil end
+    local ballPos = ball.Position
+    return vector.create(ballPos.X, ballPos.Y, ballPos.Z),
+           CFrame.new(ballPos) * (humanoidRootPart.CFrame - humanoidRootPart.CFrame.Position)
+end
+
+-- =====================
+-- SCREEN GUI & BUTTONS
+-- =====================
+local screenGui = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('rSMMpZcfTmBAweYRLMhCIJSUluUiXsjaRoKCHowAFHfDsHhtocehZXwU2NyZWVuR3Vp'))
+screenGui.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('pHAXIcszVKjUEXtaBugEqcMbVaztCvBmVHToGRCnQdVUbsGRlElCcEhU29jY2VyR3Vp')
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lNnUWSTdvucTeGQBjAhTiPgtSZtXIFlkwuoNxDcUQFuLhbYXuOLcIFoUGxheWVyR3Vp'))
+
+local anchorFrame = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('pqfjKnirQNsSrnTtbBQtrliblaovCxjKiPedYvZgjTUCifnCmGKwjooRnJhbWU='))
+anchorFrame.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('VMVuMwZiPdmhimKCpnABIoKGGMfrmDVZCjhfYkYLcXIUtwVtWszZvWlQW5jaG9yRnJhbWU=')
+anchorFrame.Size = UDim2.new(0, 0, 0, 0)
+anchorFrame.Position = UDim2.new(1, 0, 1, 0)
+anchorFrame.BackgroundTransparency = 1
+anchorFrame.ZIndex = 10
+anchorFrame.Parent = screenGui
+
+-- Power Bar
+local powerBarBg = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('pbvkHEnLHXgdRoWwhUYMCPvkWEnPsIiWRMLZqtAULKjYdBfIJHmnPHKRnJhbWU='))
+powerBarBg.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('LHBzjKlsBhWqOuHhupidELyQgATHbnMGartWjopQWipGytbQshPoGREUG93ZXJCYXJCZw==')
+powerBarBg.Size = UDim2.new(0.5, 0, 0, 8)
+powerBarBg.Position = UDim2.new(0.25, 0, 1, -12)
+powerBarBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+powerBarBg.BackgroundTransparency = 0.4
+powerBarBg.BorderSizePixel = 0
+powerBarBg.ZIndex = 10
+powerBarBg.Visible = false
+powerBarBg.Parent = screenGui
+
+local powerBarBgCorner = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('KLhoGwWhlySWLGRZHjYFiHnGpDCUAnfCtRbSmfnRarFSCtpJIPeYISCVUlDb3JuZXI='))
+powerBarBgCorner.CornerRadius = UDim.new(0, 4)
+powerBarBgCorner.Parent = powerBarBg
+
+local powerBarFill = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('XhAFGqZICeuWrDMUBksKJLPpIsPapXYmzXeabPMtIChwsTCLkHVFhOFRnJhbWU='))
+powerBarFill.Size = UDim2.new(0, 0, 1, 0)
+powerBarFill.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+powerBarFill.BorderSizePixel = 0
+powerBarFill.ZIndex = 11
+powerBarFill.Parent = powerBarBg
+
+local powerBarFillCorner = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('NaWeILqaaUtbUvFFdZygCFJKREDOKSCKqUHELlyytsZxuYgljvYYiWuVUlDb3JuZXI='))
+powerBarFillCorner.CornerRadius = UDim.new(0, 4)
+powerBarFillCorner.Parent = powerBarFill
+
+-- Shoot & Pass Buttons
+local shootHoldStart, isShootHolding, shootPower, shootTouchId = nil, false, 0, nil
+local passHoldStart, isPassHolding, passPower, passTouchId = nil, false, 0, nil
+
+local shootButton = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('yqbzMgecuvejteZkherMstAVAvkDSPsMVldFHYskCjjAifHwioHhTDHRnJhbWU='))
+shootButton.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('XzdsHvAoVPlyDkovRYCGhDWoBkXGvNwTDJATrSrvnVpfUlamyQZBdMPU2hvb3RCdXR0b24=')
+shootButton.Size = UDim2.new(0, 65, 0, 65)
+shootButton.Position = UDim2.new(0, -237, 0, -118)
+shootButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+shootButton.BorderSizePixel = 0
+shootButton.ZIndex = 10
+shootButton.Parent = anchorFrame
+
+local shootLabel = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('abuutfnAXRiLlaneXSCZPIEqdjElZnqQjcSTACnsiKtqCWrbamQfdbKVGV4dExhYmVs'))
+shootLabel.Size = UDim2.new(1, 0, 1, 0)
+shootLabel.BackgroundTransparency = 1
+shootLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+shootLabel.Text = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('oRHJPZSlYZcKYWKVczASPloIZanCwpwEeNNjIbClYFzbBIjmUrVDBOiU0hPT1Q=')
+shootLabel.Font = Enum.Font.GothamBold
+shootLabel.TextSize = 14
+shootLabel.ZIndex = 11
+shootLabel.Parent = shootButton
+
+local shootCorner = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('WEPFhXxnGXHklFcTgIFwzlwfDhUAGjTZTRAMuUkbLKCFAsdZSxMBcPcVUlDb3JuZXI='))
+shootCorner.CornerRadius = UDim.new(0, 32)
+shootCorner.Parent = shootButton
+
+local passButton = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('xgPOnGbuDGvAuKHblSSFloshjVBjNvKMgbjJdzAYgMqXFYfAjPxTQVwRnJhbWU='))
+passButton.Name = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('rcQYWJOudZGplPvDnLqHdLMrnxgizSEQviHFShPopTHSAtxmFoTpgTEUGFzc0J1dHRvbg==')
+passButton.Size = UDim2.new(0, 65, 0, 65)
+passButton.Position = UDim2.new(0, -174, 0, -87)
+passButton.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+passButton.BorderSizePixel = 0
+passButton.ZIndex = 10
+passButton.Parent = anchorFrame
+
+local passLabel = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('QeuBXCmJBualzzQwEbVKWBCnknYwbfuFWAlZhWHsPfdcxCwXSfZEZrQVGV4dExhYmVs'))
+passLabel.Size = UDim2.new(1, 0, 1, 0)
+passLabel.BackgroundTransparency = 1
+passLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+passLabel.Text = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('hHnWVvrIAGHNtJRBClXCNdIexeOMkfaBlhQFWOGfsEGVQeYwwxqIKToUEFTUw==')
+passLabel.Font = Enum.Font.GothamBold
+passLabel.TextSize = 14
+passLabel.ZIndex = 11
+passLabel.Parent = passButton
+
+local passCorner = Instance.new(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('AlJUUiKERjfqnRGdxumVZQjQWXmOmQAjPblPoIITHsanxdphgkbaQiqVUlDb3JuZXI='))
+passCorner.CornerRadius = UDim.new(0, 32)
+passCorner.Parent = passButton
+
+-- Original Buttons Logic
+local originalShootContainer = nil
+local originalPassContainer = nil
+
+local function restoreOriginalButtons()
+    pcall(function()
+        local JumpButton = player.PlayerGui:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('BUrUSvxFogYxrQEfvxydcVFuBtjiwzUgdmIzIrDJVzzTdjqJsnPsNciVG91Y2hHdWk='), true):FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('DACEcZvqutThxlMwBrImxujlUyFEkksTcCMitdDvdSPOoFOFnQQsldySnVtcEJ1dHRvbg=='), true)
+        if JumpButton then
+            if JumpButton:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('eKclbGChuxMVLsfJgizsQzeVEAdvzTKLQCYUiZgBsiLyEvSYZEOjupuU2hvb3RCdXR0b25Db250YWluZXI=')) then
+                originalShootContainer = JumpButton.ShootButtonContainer
+                originalShootContainer.Visible = true
+            end
+            if JumpButton:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('ZmTjSKIVmsEIzqGHBPEGIDUdHYVodstdgsJQkWvXUMVePYyPqyvxeUnUGFzc0J1dHRvbkNvbnRhaW5lcg==')) then
+                originalPassContainer = JumpButton.PassButtonContainer
+                originalPassContainer.Visible = true
+            end
+        end
+    end)
+end
+
+local function hideOriginalButtons()
+    pcall(function()
+        local JumpButton = player.PlayerGui:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('nxswRpgoCpvSbiKSSZpnquKckZdhkipOqkndKJKgJPlfRSjOQSPbilBVG91Y2hHdWk='), true):FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('IyVsSdhZzutzlVcpWuiSYXLCZRrTtnUfvqpjdVIRSyDQphkczInOeoKSnVtcEJ1dHRvbg=='), true)
+        if JumpButton then
+            if JumpButton:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('LuJShUsyGwBmTvMfsPlvlQqHuICxwTTwvqWzLDgePNtOGDSQbiipNUwU2hvb3RCdXR0b25Db250YWluZXI=')) then JumpButton.ShootButtonContainer.Visible = false end
+            if JumpButton:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('YXxxJZwHeMjMeYwVOsXGIVlbHKbnvCFcEwxnVxdZLudcrDSLIOtXdKeUGFzc0J1dHRvbkNvbnRhaW5lcg==')) then JumpButton.PassButtonContainer.Visible = false end
+        end
+    end)
+end
+
+local function updateButtonVisibility()
+    shootButton.Visible = ScriptSettings.ShowButtons
+    passButton.Visible = ScriptSettings.ShowButtons
+    if ScriptSettings.ShowButtons then
+        hideOriginalButtons()
+    else
+        restoreOriginalButtons()
+    end
+end
+
+-- Shoot / Pass Logic (Full)
+local function startShootHold()
+    if isShootHolding then return end
+    isShootHolding = true
+    shootPower = 0
+    shootHoldStart = tick()
+    shootButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    powerBarFill.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+    powerBarFill.Size = UDim2.new(0, 0, 1, 0)
+    powerBarBg.Visible = true
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('gIkwhDaQPunxNABqyfJIPQKoaSFpvIntwqUpZPRwRqgbWYfvYytJTsYU2hvb3Q='))
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('kuqiHZQBCIkmKzxMIsZTXDaXwoVhlAzvidVDEHoTHuxzVpVagpFuTymU2hvb3Q='))
+end
+
+local function fireShoot()
+    if not isShootHolding then return end
+    shootButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+    powerBarBg.Visible = false
+    powerBarFill.Size = UDim2.new(0, 0, 1, 0)
+
+    local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('sHVPhlWsLMYaZtyqSASmSkwRNUnepYDczUMMLhawMPZreCRPgxISUjrU2VydmVyU29jY2VyQmFsbA=='))
+    if ball then
+        local sideOffset = getBallSideOffset()
+        local footSide = getFootSide(sideOffset)
+        local straightDir = getStraightDirection()
+        local curvedDir = getCurvedDirection(sideOffset)
+        local capturedPower = shootPower
+        local capturedPos, capturedCFrame = getBallPosAndCFrame()
+
+        KickBallRemote:FireServer(ball, straightDir, OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lyHTiczpParFGZxjknPpsRegmDtqNgOKbxhMbXQPKPsIvQamWaMvDIJU2hvb3Q='), capturedPos, capturedCFrame, footSide, capturedPower)
+
+        if math.abs(sideOffset) > 0.3 then
+            local curveDelay = 0.12 + (math.abs(sideOffset) / 5) * 0.18
+            task.delay(curveDelay, function()
+                local b = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('iDnosnwpMoCDCvBupurujlDfVVzmXDMkutwInMBKuZQtKhCACiDWnZyU2VydmVyU29jY2VyQmFsbA=='))
+                if b then
+                    local bPos = b.Position
+                    KickBallRemote:FireServer(b, curvedDir, OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('WogjkVDMSDaJqmjdyXWsZrhuIqAVrfslKRzUCGWkHvlBffCtrdSGVjNU2hvb3Q='), vector.create(bPos.X, bPos.Y, bPos.Z), CFrame.new(bPos) * (humanoidRootPart.CFrame - humanoidRootPart.CFrame.Position), footSide, capturedPower * 0.6)
+                end
+            end)
+        end
+    end
+
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('LYmfZwAAWlGJcwrDoHkXdTSyiaCGwgIkGbEVWFUXoplSEpgwvJCUrleRHJpYmJsZQ=='))
+    isShootHolding = false
+    shootTouchId = nil
+    shootPower = 0
+    shootHoldStart = nil
+end
+
+local function startPassHold()
+    if isPassHolding then return end
+    isPassHolding = true
+    passPower = 0
+    passHoldStart = tick()
+    passButton.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    powerBarFill.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+    powerBarFill.Size = UDim2.new(0, 0, 1, 0)
+    powerBarBg.Visible = true
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('TkzoDuwGFkzhfulaijUORVIJqcszmBCglpFXRKAvRTfrtYKILdzPRkwUGFzcw=='))
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('zlMUcVXYTzvyVFKXKmgajJESxZRDXNboqFmBUygJpwQRHyaCNnPYsATUGFzcw=='))
+end
+
+local function firePass()
+    if not isPassHolding then return end
+    passButton.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+    powerBarBg.Visible = false
+    powerBarFill.Size = UDim2.new(0, 0, 1, 0)
+
+    local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('PGyBCksasArmWfMPEWGSFyqPyiVqJXQMsFHmIfNwUPapkirotkPbmLhU2VydmVyU29jY2VyQmFsbA=='))
+    if ball then
+        local sideOffset = getBallSideOffset()
+        local footSide = getFootSide(sideOffset)
+        local straightDir = getStraightDirection()
+        local curvedDir = getCurvedDirection(sideOffset)
+        local capturedPower = passPower
+        local capturedPos, capturedCFrame = getBallPosAndCFrame()
+
+        KickBallRemote:FireServer(ball, straightDir, OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('wgOrDjasYtYuCIIZsaYczGpLRnkNeDYBMrpKyWKcVIzlEiOTakIxjVVUGFzcw=='), capturedPos, capturedCFrame, footSide, capturedPower)
+
+        if math.abs(sideOffset) > 0.3 then
+            local curveDelay = 0.12 + (math.abs(sideOffset) / 5) * 0.18
+            task.delay(curveDelay, function()
+                local b = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('CiGMOjWvtjfpOAAbwdQbFlNStVwFMryEIMZellBAYpOfnESNyWxZUauU2VydmVyU29jY2VyQmFsbA=='))
+                if b then
+                    local bPos = b.Position
+                    KickBallRemote:FireServer(b, curvedDir, OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('SywoYkHWLJJBddDlNuxgrJsZGRqMQwVwvkAczCiCWOnMmORVUkSaHUzUGFzcw=='), vector.create(bPos.X, bPos.Y, bPos.Z), CFrame.new(bPos) * (humanoidRootPart.CFrame - humanoidRootPart.CFrame.Position), footSide, capturedPower * 0.6)
+                end
+            end)
+        end
+    end
+
+    UpdateKickModeStateRemote:FireServer(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('dUnafXKXKjzXIWUEWvDCDnYFyMqUOkeEXwZMHFxfkTkBwJsTnKyuEZhRHJpYmJsZQ=='))
+    isPassHolding = false
+    passTouchId = nil
+    passPower = 0
+    passHoldStart = nil
+end
+
+-- =====================
+-- UI TABS
+-- =====================
+local BoxTab = Window:AddTab(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('xBsBiLyXjfJjSuXBrFlJmuuMQRUjNeHBvuoXtQcjgdfKelgMOsKpdOWQm94IFJlYWNo'))
+BoxTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('HzzdyQAzWXFUfuXHjnEOJUavgsdiFCZqphyYneSUlfaJXjNdgXqkHwIVGl0bGU='))({ Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('UiDKlcZEpaXNCwigvAhbQEIPuXAaHyeROZcROpTRdfOYCUIXwAULSaaQm94IFJlYWNo') })
+
+BoxTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('TJwQlGJldvFrAbapyTrAPIuvaXpJMjWzRfHUKatAkzWnArwcbdjtdzWSW5wdXQ='))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('XivTWoqJNAgEzfCzdmXmxGPxpIvFsIbRnRRUbLNpNbtaRAMwFRXBVEhQm94IFNpemUgWA=='),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('ndSzDkXjvJWQYXuzIdUBIEpnDcTulisViCnWMMWgVVOHiAATQmUoVJiUmVhY2ggU2l6ZSBYIChNYXggMjApIA=='),
+    DefaultText = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('qXxndXyhrupZhGDkLunQvKHCQzCUOpJZdGIDlBHhuuXumyweLvrLYVDMTA='),
+    Placeholder = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('OftKUExtgijVkgPBlYNyGtuSNWWudvogovHKbaFHczPXLSuqHohuuTwMTA='),
+    Callback = function(val) local num = tonumber(val) or 10; ScriptSettings.BoxSize = Vector3.new(num, ScriptSettings.BoxSize.Y, ScriptSettings.BoxSize.Z) end,
+})
+
+BoxTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('nkZieZtCHOJUSyAWpPFnfDCXHgeFxKdydlEYLWtvdiNwgdPOczkTGFtSW5wdXQ='))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('AIvdvhjQBxmCkwxaXhmbtwjynCyVVoqAUeHyAnfybaPSrcDnQtstuXRQm94IFNpemUgWQ=='),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('JBLGEphzYlvjZvcKgoqRmWLVuFqriXfRXPNIjYJPERLEYAHJBUQAPPJUmVhY2ggU2l6ZSBZIChNYXggMjApIA=='),
+    DefaultText = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('JGXyYLlpiHWQDmCHrzTCMRVYMjmmHsEspaPqZlTgFTdXLHXFcOayhfeMTA='),
+    Placeholder = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('WXDVxILKjXtPTkcGHTAjpilEOFDvOEhjoAopAKeULlksQZPovCrEqKKMTA='),
+    Callback = function(val) local num = tonumber(val) or 10; ScriptSettings.BoxSize = Vector3.new(ScriptSettings.BoxSize.X, num, ScriptSettings.BoxSize.Z) end,
+})
+
+BoxTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('BELLkfDaLrmDQGaRGNpmDXUErErqWeKmHxATgejVGgePkpKKnKGTREqSW5wdXQ='))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('TBFamEkqCBgRcyJrKNEOaBHFzpoqQWrhnTyLupDQImSrtOIktemNcIIQm94IFNpemUgWiAg'),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('kPUpheFDDEpyrrWVDeDxIODqHETUcPiCkkkmksdgqswqfLCHLMTLkUFUmVhY2ggU2l6ZSBaIChNYXggMjApIA=='),
+    DefaultText = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('brOylbEHdQZmQHCsMVLmSEaCPRMAtZOIMFNVKdYQuLUahBgafAlVRXHMTA='),
+    Placeholder = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('huICrNlGIPAtwZZgXoHnYdMDiPEMnMknmAWobTEQvayqMxqWKYYyjVBMTA='),
+    Callback = function(val) local num = tonumber(val) or 10; ScriptSettings.BoxSize = Vector3.new(ScriptSettings.BoxSize.X, ScriptSettings.BoxSize.Y, num) end,
+})
+
+BoxTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('RiSaEYwZvuwkHqCcPiZQDkiSZcgufSNgIgGcTIrIYDlUbbOtPptszrOVG9nZ2xl'))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('zPEuIskoJNEMZIckEJPUHKSVJAtWQZjAvHcgdgDWLorcuBpKKNJkHspRW5hYmxlIEJveA=='),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('DmdHFsPuSBEOVDuhRhDNLkAMiVdzMmMbgjTNfdOrIneQdgwgFOSvZWkU2hvdy9IaWRlIEJveA=='),
+    DefaultValue = true,
+    Callback = function(val) ScriptSettings.BoxEnabled = val; selectionBox.Transparency = val and 0 or 1 end,
+})
+
+-- Mobile Tab
+local MobileTab = Window:AddTab(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('PJhrFwDNIhPwsDgQAInCYuEwqXNhqzumCgBonOjNYcYrdnUBoItQSlTTW9iaWxl'))
+MobileTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('NKRpfjykOmyHeElLCaafjFZducRCsHWiuhmojVxtajvsNfgKAoFJCazVGl0bGU='))({ Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('nhGOySsopMwKpgpDspjZbZJDwcUXDVsotriRByJnBaYykJcmwfqxmybTW9iaWxlIEJ1dHRvbnM=') })
+
+MobileTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('xdRwPEqPIPiUffpNuqsSaITvcsEjTffoGmzcdZCsKSlkCHmusHovtiRVG9nZ2xl'))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('pacfIdkmIuCLmZvYagATnwtelheONCNjJDhRVuJFuAwOFqZdGmcdGsxQm94IFJlYWNoIGJ1dHRvbg=='),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('yxiUozrhvKgoXsrfyJGydBYMxkHpcjICUrYXtrsofVfUgGSrMOvOgOxbWFrZXMgbmV3IGJ1dHRvbiBzbyBib3ggcmVhY2ggd29yayB3aXRoIHNob290IGFuZCBwYXNz'),
+    DefaultValue = true,
+    Callback = function(val)
+        ScriptSettings.ShowButtons = val
+        updateButtonVisibility()
+    end,
+})
+
+-- PC Tab
+local PCTab = Window:AddTab(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('eXnLJbpWXdhiHnuCqftRVWdEsgzVDEZslQwoaPjOGSWgQdDcqTFqhrYUEM='))
+PCTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lpKBUOdcwmRbTeKBFVLVdPtJzjrgplOWNTTavuTzziBipRDXifVHOqiVGl0bGU='))({ Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('QZXavbrdVpAvGHaBVZIKRshmCUhTVUkGDnlFpdwqlFUJJvdslyqCoUeUEMgRmVhdHVyZXM=') })
+
+-- Others Tab
+local OthersTab = Window:AddTab(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lVlmqlTiElRNLBsmYKUpgJabMsngBCDMAoUKQQWDxyvnYfyHdMjRscWT3RoZXJz'))
+OthersTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('tWOxgUPKyZVnsHNaWvYwSVIRWITsojTMzmcnBLCeKurXrmBmzSLdAUdVGl0bGU='))({ Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('YMXPDxqotzppKmObuvrDIuGlODtFzhZVBVMFBMiMeRdNHjaDCGgVWumT3RoZXIgRmVhdHVyZXM=') })
+
+OthersTab:New(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('hWYrnrQYjsXZskfHyVmUCUHXfQyBuAghkzXQcboukhQwwiVhBiRpZuJVG9nZ2xl'))({
+    Title = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('BlJuQOHUGmAsmbfrhmjRfQYyOQVnNnqSsCNdiscgQqjixKJHauRTqntSW5maW5pdGUgU3RhbWluYQ=='),
+    Description = OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('wcklrkHVZXaPqTWeDwCxHmRpQyHGTCnBuWQGUwXxLCHGnWtJAYTvXPLQWx3YXlzIGtlZXAgbWF4aW11bSBzdGFtaW5h'),
+    DefaultValue = false,
+    Callback = function(v)
+        ScriptSettings.InfiniteStamina = v
+        if v then
+            startInfiniteStamina()
+        else
+            stopInfiniteStamina()
+        end
+    end,
+})
+
+-- =====================
+-- INPUT HANDLING
+-- =====================
+local function isTouchOn(button, position)
+    local buttonPos = button.AbsolutePosition
+    local buttonSize = button.AbsoluteSize
+    return position.X >= buttonPos.X and position.X <= buttonPos.X + buttonSize.X
+        and position.Y >= buttonPos.Y and position.Y <= buttonPos.Y + buttonSize.Y
+end
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not ScriptSettings.ShowButtons then return end
+    if input.UserInputType == Enum.UserInputType.Touch then
+        if isTouchOn(shootButton, input.Position) then
+            shootTouchId = input
+            startShootHold()
+        elseif isTouchOn(passButton, input.Position) then
+            passTouchId = input
+            startPassHold()
+        end
+    elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if isTouchOn(shootButton, input.Position) then startShootHold()
+        elseif isTouchOn(passButton, input.Position) then startPassHold() end
+    end
+    if not processed then
+        if input.KeyCode == Enum.KeyCode.E then startShootHold()
+        elseif input.KeyCode == Enum.KeyCode.Q then startPassHold() end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if not ScriptSettings.ShowButtons then return end
+    if input.UserInputType == Enum.UserInputType.Touch then
+        if input == shootTouchId then fireShoot()
+        elseif input == passTouchId then firePass() end
+    elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+        fireShoot()
+        firePass()
+    elseif input.KeyCode == Enum.KeyCode.E then fireShoot()
+    elseif input.KeyCode == Enum.KeyCode.Q then firePass() end
+end)
+
+-- =====================
+-- MAIN LOOP
+-- =====================
+RunService.Heartbeat:Connect(function()
+    if not humanoidRootPart or not humanoidRootPart.Parent then return end
+    updateBox()
+
+    if isShootHolding then
+        shootPower = math.clamp((tick() - shootHoldStart) / 0.5, 0, 1)
+        powerBarFill.Size = UDim2.new(shootPower, 0, 1, 0)
+    elseif isPassHolding then
+        passPower = math.clamp((tick() - passHoldStart) / 0.5, 0, 1)
+        powerBarFill.Size = UDim2.new(passPower, 0, 1, 0)
+    end
+
+    if ScriptSettings.BoxEnabled and isBallTouchingBox() and not isShootHolding and not isPassHolding then
+        local ball = workspace:FindFirstChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('TASaOlvwVXZrOZwSHnCKLEIPiRueGLYPkyYkVVyRuLMDkuomBIAJxtpU2VydmVyU29jY2VyQmFsbA=='))
+        if ball then
+            local ballPos = ball.Position
+            local look = humanoidRootPart.CFrame.LookVector
+            KickBallRemote:FireServer(ball, vector.create(look.X, look.Y, look.Z), OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('eePFfigVPleRgaCdTbJqXewVNAYUlrSfUhVccidPRMXYODxaZIrCwDzRHJpYmJsZQ=='), vector.create(ballPos.X, ballPos.Y, ballPos.Z), CFrame.new(ballPos) * (humanoidRootPart.CFrame - humanoidRootPart.CFrame.Position), OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('mObeeMrzVSWUgfDyibDUkIojWtoNCmlBvmvwxUwzvHPbMHDTHMkobLSRm9yd2FyZA=='))
+        end
+    end
+end)
+
+-- Character Reset
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoidRootPart = newChar:WaitForChild(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('EknoHPJEhBZHiPZkRwnjhzxVdFUtzgCSeFYUVhPnpKhbFhVHIpAkXLMSHVtYW5vaWRSb290UGFydA=='))
+    task.wait(0.5)
+    updateBox()
+    updateButtonVisibility()
+end)
+
+-- Initial Setup
+task.spawn(function()
+    task.wait(1)
+    hideOriginalButtons()
+end)
+
+updateButtonVisibility()
+Window:SetTab(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('GFpcqnORUjBLcWpVITAaFfuYktRjxYXZyyZlaPUfcKaTmBAXhSrcmaEQm94IFJlYWNo'))
+Window:SetTheme(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('fmaIKtFvZnQHRusavSOhDQmPcSTHtNyAPbseRkABsJrkaqxeJWTTVXIUm9zZQ=='))
+
+print(OIIyLFzfIjqIMbhnPpdlOZIpvFtBaAwWnGHqpYwYfjBEmilTXdBcBnlZibiYxDQDVIICJjNB('lGQOwEpHPjZuKxShIIGhbMcBKwfAcExfPyNlpZcgqyPZwhnawvYTpogQnVnZXIgUmVhY2ggbG9hZGVkIHN1Y2Nlc3NmdWxseQ=='))    
